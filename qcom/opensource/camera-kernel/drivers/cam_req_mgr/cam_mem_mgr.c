@@ -384,6 +384,8 @@ int cam_mem_get_cpu_buf(int32_t buf_handle, uintptr_t *vaddr_ptr, size_t *len)
 	if (tbl.bufq[idx].kmdvaddr && kref_get_unless_zero(&tbl.bufq[idx].krefcount)) {
 		*vaddr_ptr = tbl.bufq[idx].kmdvaddr;
 		*len = tbl.bufq[idx].len;
+		CAM_DBG(CAM_MEM, "Get buf_handle: %u, idx: %d, ref %d",
+			buf_handle, idx, tbl.bufq[idx].krefcount.refcount);
 	} else {
 		CAM_ERR(CAM_MEM, "No KMD access requested, kmdvddr= %p, idx= %d, buf_handle= %d",
 			tbl.bufq[idx].kmdvaddr, idx, buf_handle);
@@ -1543,6 +1545,8 @@ void cam_mem_put_cpu_buf(int32_t buf_handle)
 			"Unbalanced release Called buf_handle: %u, idx: %d",
 			tbl.bufq[idx].buf_handle, idx);
 	}
+	CAM_DBG(CAM_MEM, "Put buf_handle: %u, idx: %d, ref %d",
+		buf_handle, idx, tbl.bufq[idx].krefcount.refcount);
 
 end:
 	mutex_unlock(&tbl.bufq[idx].q_lock);
