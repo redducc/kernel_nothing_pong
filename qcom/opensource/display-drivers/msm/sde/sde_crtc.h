@@ -524,6 +524,7 @@ struct sde_line_insertion_param {
  * @property_state: Local storage for msm_prop properties
  * @property_values: Current crtc property values
 	bool fod_dim_valid;
+	bool color_invert_on;
  * @input_fence_timeout_ns : Cached input fence timeout, in ns
  * @num_dim_layers: Number of dim layers
  * @cwb_enc_mask  : encoder mask populated during atomic_check if CWB is enabled
