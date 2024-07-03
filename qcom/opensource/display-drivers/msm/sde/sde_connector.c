@@ -966,7 +966,8 @@ static bool sde_connector_fod_dim_layer_status(struct sde_connector *c_conn)
 	    !c_conn->encoder->crtc->state)
 		return false;
 
-	return !!to_sde_crtc_state(c_conn->encoder->crtc->state)->fod_dim_layer;
+	return (!!to_sde_crtc_state(c_conn->encoder->crtc->state)->fod_dim_layer &&
+		!!to_sde_crtc_state(c_conn->encoder->crtc->state)->fod_dim_valid);
 }
 
 static int _sde_connector_update_dirty_properties(
@@ -1075,6 +1076,8 @@ static int _sde_connector_update_finger_hbm_status(
 			mutex_unlock(&c_conn->lock);
 			c_conn->last_panel_power_mode = SDE_MODE_DPMS_ON;
 		}
+		if (!c_conn->fingerlayer_dirty)
+                        usleep_range(521 * 10, 521 * 10); // Avoid screen flashes
 		sde_backlight_device_update_status(c_conn->bl_device);
 		/*wait for VBLANK */
 		//sde_encoder_wait_for_event(c_conn->encoder, MSM_ENC_VBLANK);
