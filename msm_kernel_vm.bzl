@@ -1,5 +1,5 @@
 load(
-    "//build:msm_kernel_extensions.bzl",
+    ":msm_kernel_extensions.bzl",
     "define_extras",
     "get_build_config_fragments",
     "get_dtb_list",
@@ -25,7 +25,7 @@ load(":msm_dtc.bzl", "define_dtc_dist")
 load(":target_variants.bzl", "vm_variants")
 
 def define_make_vm_dtb_img(target, dtb_list, page_size):
-    compiled_dtbs = ["//msm-kernel:{}/{}".format(target, t) for t in dtb_list]
+    compiled_dtbs = [":{}/{}".format(target, t) for t in dtb_list]
     dtb_cmd = "compiled_dtb_list=\"{}\"\n".format(" ".join(["$(location {})".format(d) for d in compiled_dtbs]))
     dtb_cmd += """
       $(location //prebuilts/kernel-build-tools:linux-x86/bin/mkdtboimg) \\
