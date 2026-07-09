@@ -1,0 +1,147 @@
+# SPDX-License-Identifier: GPL-2.0
+
+load("@rules_pkg//pkg:install.bzl", "pkg_install")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
+load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
+load(
+    "//build/kernel/kleaf:kernel.bzl",
+    "ddk_uapi_headers",
+    "kernel_abi",
+    "kernel_module_group",
+    "kernel_modules_install",
+)
+
+kernel_module_group(
+    name = "external_modules",
+    srcs = [
+        "//vendor/osom/ingot-modules/osom:waipio_perf_bf_fp",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_dw3000",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_focaltech_ft3519",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_mcps802154",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_mcps802154_region_fira",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_mcps802154_region_nfcc_coex",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_mcps802154_region_pctt",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_st21nfc",
+        "//vendor/osom/ingot-modules/osom:waipio_perf_st54spi",
+        "//vendor/osom/ingot-modules/qcom/opensource/audio-kernel:waipio_perf_modules",
+        "//vendor/osom/ingot-modules/qcom/opensource/bt-kernel:waipio_perf_bt_fm_slim",
+        "//vendor/osom/ingot-modules/qcom/opensource/bt-kernel:waipio_perf_btpower",
+        "//vendor/osom/ingot-modules/qcom/opensource/camera-kernel:waipio_perf_camera",
+        "//vendor/osom/ingot-modules/qcom/opensource/dataipa:waipio_perf_gsim",
+        "//vendor/osom/ingot-modules/qcom/opensource/dataipa:waipio_perf_ipam",
+        "//vendor/osom/ingot-modules/qcom/opensource/dataipa:waipio_perf_ipanetm",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/aps:waipio_perf_aps",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/mem:waipio_perf_rmnet_mem",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/offload:waipio_perf_offload",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/perf:waipio_perf_perf",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/perf_tether:waipio_perf_perf_tether",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/sch:waipio_perf_sch",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/shs:waipio_perf_shs",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet-ext/wlan:waipio_perf_wlan",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet:waipio_perf_rmnet_core",
+        "//vendor/osom/ingot-modules/qcom/opensource/datarmnet:waipio_perf_rmnet_ctl",
+        "//vendor/osom/ingot-modules/qcom/opensource/display-drivers:waipio_perf_display_drivers",
+        "//vendor/osom/ingot-modules/qcom/opensource/dsp-kernel:waipio_perf_cdsp-loader",
+        "//vendor/osom/ingot-modules/qcom/opensource/dsp-kernel:waipio_perf_frpc-adsprpc",
+        "//vendor/osom/ingot-modules/qcom/opensource/eva-kernel:waipio_perf_modules",
+        "//vendor/osom/ingot-modules/qcom/opensource/graphics-kernel:waipio_perf_msm_kgsl",
+        "//vendor/osom/ingot-modules/qcom/opensource/mm-drivers/msm_ext_display:waipio_perf_msm_ext_display",
+        "//vendor/osom/ingot-modules/qcom/opensource/mm-drivers/sync_fence:waipio_perf_sync_fence",
+        "//vendor/osom/ingot-modules/qcom/opensource/mmrm-driver:waipio_perf_mmrm_driver",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_hdcp_qseecom_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_qce50_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_qcedev-mod_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_qseecom_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_smcinvoke_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:waipio_perf_tz_log_dlkm",
+        "//vendor/osom/ingot-modules/qcom/opensource/spu-kernel:waipio_perf_spu-drivers",
+        "//vendor/osom/ingot-modules/qcom/opensource/synx-kernel:waipio_perf_modules",
+        "//vendor/osom/ingot-modules/qcom/opensource/video-driver:waipio_perf_video_modules",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_cnss2",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_cnss_nl",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_cnss_plat_ipc_qmi_svc",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_cnss_prealloc",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_cnss_utils",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/platform:waipio_perf_wlan_firmware_service",
+        "//vendor/osom/ingot-modules/qcom/opensource/wlan/qcacld-3.0:waipio_perf_qca_cld_qca6490",
+    ],
+)
+
+kernel_modules_install(
+    name = "modules_install",
+    kernel_build = "//vendor/osom/ingot-kernel:waipio_perf",
+    kernel_modules = [
+        ":external_modules",
+    ],
+)
+
+ddk_uapi_headers(
+    name = "ingot_ddk_uapi_headers",
+    srcs = [
+        "//vendor/osom/ingot-modules/qcom/opensource/audio-kernel:audio_uapi_headers",
+        "//vendor/osom/ingot-modules/qcom/opensource/dataipa:dataipa_uapi_headers",
+        "//vendor/osom/ingot-modules/qcom/opensource/display-drivers:uapi_headers",
+        "//vendor/osom/ingot-modules/qcom/opensource/securemsm-kernel:securemsm_uapi_headers",
+    ],
+    out = "ddk-uapi-headers.tar.gz",
+    kernel_build = "//vendor/osom/ingot-kernel:waipio_perf",
+)
+
+hermetic_genrule(
+    name = "ingot_merged_kernel_uapi_headers",
+    srcs = [
+        "//vendor/osom/ingot-kernel:waipio_perf_uapi_headers",
+        ":ingot_ddk_uapi_headers",
+    ],
+    outs = [
+        "kernel-uapi-headers.tar.gz",
+    ],
+    cmd = """
+        mkdir -p out
+        tar -xzf $$(find bazel-out/ -name kernel-uapi-headers.tar.gz -print -quit) -C out
+        tar -xzf $$(find bazel-out/ -name ddk-uapi-headers.tar.gz -print -quit) -C out
+        tar -czf $(@D)/kernel-uapi-headers.tar.gz . -C out
+    """,
+)
+
+pkg_files(
+    name = "ingot_uapi_headers_dist_files",
+    srcs = [
+        ":ingot_merged_kernel_uapi_headers",
+    ],
+)
+
+pkg_install(
+    name = "ingot_uapi_headers_dist",
+    srcs = [":ingot_uapi_headers_dist_files"],
+    destdir = "out/osom_ingot/dist",
+)
+
+pkg_files(
+    name = "ingot_dist_files",
+    srcs = [
+        "//vendor/osom/ingot-kernel:waipio_perf",
+        ":modules_install",
+        ":ingot_uapi_headers_dist_files",
+        # Mixed build: Additional GKI artifacts.
+        "//common:kernel_aarch64",
+        "//common:kernel_aarch64_modules",
+        "//common:kernel_aarch64_images_system_dlkm_image",
+    ],
+    strip_prefix = strip_prefix.files_only(),
+)
+
+pkg_install(
+    name = "ingot_dist",
+    srcs = [":ingot_dist_files"],
+    destdir = "out/osom_ingot/dist",
+)
+
+kernel_abi(
+    name = "ingot_abi",
+    kernel_build = "//vendor/osom/ingot-kernel:waipio_perf",
+    kernel_modules = [
+        ":external_modules",
+    ],
+    module_grouping = False,
+)
