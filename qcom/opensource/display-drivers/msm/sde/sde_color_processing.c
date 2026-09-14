@@ -1801,6 +1801,7 @@ bool sde_cp_crtc_update_pcc(struct drm_crtc *crtc)
 		return false;
 
 	skip_pcc = pcc_skip_mode;
+	skipped_pcc = pcc_skip_mode;
 	memset(&hw_cfg, 0, sizeof(hw_cfg));
 
 	if (!pcc_skip_mode && pcc_enabled) {
@@ -1882,28 +1883,36 @@ static void _sde_cp_crtc_commit_feature(struct sde_cp_node *prop_node,
 
 	if (prop_node->feature == SDE_CP_CRTC_DSPP_PCC) {
 		blob = prop_node->blob_ptr;
-		pcc_cfg = blob->data;
+		if (!blob) {
+			sde_crtc_state->color_invert_on = false;
+			pcc_enabled = false;
+			skip_pcc = false;
+			skipped_pcc = false;
+		} else {
+			pcc_cfg = blob->data;
 
-		if (!(pcc_cfg->r.c == 0 && pcc_cfg->g.c == 0 && pcc_cfg->b.c == 0)) {
-			sde_crtc_state->color_invert_on = true;
-			if (hw_cfg.payload && (hw_cfg.len == sizeof(save_pcc))) {
-				memcpy(&save_pcc, hw_cfg.payload, hw_cfg.len);
-				pcc_enabled = true;
+			if (!(pcc_cfg->r.c == 0 && pcc_cfg->g.c == 0 &&
+					pcc_cfg->b.c == 0)) {
+				sde_crtc_state->color_invert_on = true;
+				if (hw_cfg.payload && (hw_cfg.len == sizeof(save_pcc))) {
+					memcpy(&save_pcc, hw_cfg.payload, hw_cfg.len);
+					pcc_enabled = true;
 
-				if (sde_is_fod_pressed(&sde_crtc->base)) {
-					hw_cfg.payload = NULL;
-					hw_cfg.len = 0;
-					skip_pcc = true;
-					skipped_pcc = true;
+					if (sde_is_fod_pressed(&sde_crtc->base)) {
+						hw_cfg.payload = NULL;
+						hw_cfg.len = 0;
+						skip_pcc = true;
+						skipped_pcc = true;
+					} else {
+						skip_pcc = false;
+						skipped_pcc = false;
+					}
 				} else {
-					skip_pcc = false;
-					skipped_pcc = false;
+					pcc_enabled = false;
 				}
 			} else {
-				pcc_enabled = false;
+				sde_crtc_state->color_invert_on = false;
 			}
-		} else {
-			sde_crtc_state->color_invert_on = false;
 		}
 	}
 
