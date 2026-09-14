@@ -3836,9 +3836,21 @@ ssize_t sysfs_force_fod_ui_write(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct dsi_display *display = dev_get_drvdata(dev);
-	struct dsi_panel *panel = display->panel;
+	struct dsi_panel *panel;
+	bool force_fod_ui;
+	int rc;
 
-	kstrtobool(buf, &panel->force_fod_ui);
+	if (!display || !display->panel)
+		return -ENODEV;
+
+	panel = display->panel;
+	rc = kstrtobool(buf, &force_fod_ui);
+	if (rc)
+		return rc;
+
+	mutex_lock(&panel->panel_lock);
+	panel->force_fod_ui = force_fod_ui;
+	mutex_unlock(&panel->panel_lock);
 
 	return count;
 }
@@ -3856,23 +3868,88 @@ ssize_t sysfs_fod_dim_alpha_write(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct dsi_display *display = dev_get_drvdata(dev);
-	struct dsi_panel *panel = display->panel;
+	struct dsi_panel *panel;
 	int value;
+	int rc;
 
-	sscanf(buf, "%d", &value);
+	if (!display || !display->panel)
+		return -ENODEV;
 
-	if (value > 255)
+	panel = display->panel;
+	rc = kstrtoint(buf, 10, &value);
+	if (rc)
+		return rc;
+
+	if (value < -1 || value > 255)
 		return -EINVAL;
 
-	panel->force_fod_dim_alpha = value >= 0;
+	mutex_lock(&panel->panel_lock);
+	if (value < 0) {
+		panel->force_fod_dim_alpha = false;
+		panel->fod_dim_alpha = dsi_panel_calc_fod_dim_alpha(panel);
+	} else {
+		panel->force_fod_dim_alpha = true;
+		panel->fod_dim_alpha = (u8)value;
+	}
+	mutex_unlock(&panel->panel_lock);
 
-	if (!panel->force_fod_dim_alpha)
-		goto exit;
-
-	panel->fod_dim_alpha = value;
-
-exit:
 	return count;
+}
+
+static ssize_t fod_applied_alpha_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+	struct dsi_panel *panel;
+	int alpha;
+
+	if (!display || !display->panel)
+		return -ENODEV;
+
+	panel = display->panel;
+	mutex_lock(&panel->panel_lock);
+	alpha = panel->force_fod_ui || panel->fod_ui ?
+		panel->fod_dim_alpha : -1;
+	mutex_unlock(&panel->panel_lock);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", alpha);
+}
+
+static ssize_t fod_sent_dbv_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+	struct dsi_panel *panel;
+	u32 dbv;
+
+	if (!display || !display->panel)
+		return -ENODEV;
+
+	panel = display->panel;
+	mutex_lock(&panel->panel_lock);
+	dbv = (panel->force_fod_ui || panel->fod_ui) ?
+		panel->bl_config.bl_hbm_level : panel->bl_config.real_bl_level;
+	mutex_unlock(&panel->panel_lock);
+
+	return snprintf(buf, PAGE_SIZE, "%u\n", dbv);
+}
+
+static ssize_t fod_alpha_override_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+	struct dsi_panel *panel;
+	bool override;
+
+	if (!display || !display->panel)
+		return -ENODEV;
+
+	panel = display->panel;
+	mutex_lock(&panel->panel_lock);
+	override = panel->force_fod_dim_alpha;
+	mutex_unlock(&panel->panel_lock);
+
+	return snprintf(buf, PAGE_SIZE, "%u\n", override);
 }
 
 static DEVICE_ATTR(fod_ui, 0444, sysfs_fod_ui_read, NULL);
@@ -3882,11 +3959,17 @@ static DEVICE_ATTR(force_fod_ui, 0644,
 static DEVICE_ATTR(fod_dim_alpha, 0644,
 		   sysfs_fod_dim_alpha_read,
 		   sysfs_fod_dim_alpha_write);
+static DEVICE_ATTR_RO(fod_applied_alpha);
+static DEVICE_ATTR_RO(fod_sent_dbv);
+static DEVICE_ATTR_RO(fod_alpha_override);
 
 static struct attribute *panel_attrs[] = {
 	&dev_attr_fod_ui.attr,
 	&dev_attr_fod_dim_alpha.attr,
 	&dev_attr_force_fod_ui.attr,
+	&dev_attr_fod_applied_alpha.attr,
+	&dev_attr_fod_sent_dbv.attr,
+	&dev_attr_fod_alpha_override.attr,
 	NULL,
 };
 
