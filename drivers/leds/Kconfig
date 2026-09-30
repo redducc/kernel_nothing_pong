@@ -959,6 +959,12 @@ source "drivers/leds/flash/Kconfig"
 comment "RGB LED drivers"
 source "drivers/leds/rgb/Kconfig"
 
+config LEDS_AW20036
+	tristate "LED Support for AW20036"
+	depends on LEDS_CLASS && I2C
+	help
+	  Awinic AW20036 LED driver used for the Nothing Phone (2) glyph interface.
+
 comment "LED Triggers"
 source "drivers/leds/trigger/Kconfig"
 

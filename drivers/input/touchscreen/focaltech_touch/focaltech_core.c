@@ -2701,13 +2701,11 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
     }
 
     /* reset, irq gpio info */
-    pdata->reset_gpio = of_get_named_gpio_flags(np, "focaltech,reset-gpio",
-                        0, &pdata->reset_gpio_flags);
+    pdata->reset_gpio = of_get_named_gpio(np, "focaltech,reset-gpio", 0);
     if (pdata->reset_gpio < 0)
         FTS_ERROR("Unable to get reset_gpio");
 
-    pdata->irq_gpio = of_get_named_gpio_flags(np, "focaltech,irq-gpio",
-                      0, &pdata->irq_gpio_flags);
+    pdata->irq_gpio = of_get_named_gpio(np, "focaltech,irq-gpio", 0);
     if (pdata->irq_gpio < 0)
         FTS_ERROR("Unable to get irq_gpio");
 
@@ -3087,9 +3085,9 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
                      &fts_ts_panel_notifier_callback, ts_data);
         ts_data->notifier_cookie = cookie;
         if (!cookie){
-            FTS_ERROR("[DRM]Failed to register for panel events: %d\n", cookie);
+            FTS_ERROR("[DRM]Failed to register for panel events\n");
         }
-            FTS_DEBUG("registered for panel notifications panel: 0x%x\n",
+            FTS_DEBUG("registered for panel notifications panel: %p\n",
                      active_panel);
     }
 #else
@@ -3365,9 +3363,9 @@ static int fts_ts_probe(struct spi_device *spi)
     return 0;
 }
 
-static int fts_ts_remove(struct spi_device *spi)
+static void fts_ts_remove(struct spi_device *spi)
 {
-    return fts_ts_remove_entry(spi_get_drvdata(spi));
+    fts_ts_remove_entry(spi_get_drvdata(spi));
 }
 
 static const struct spi_device_id fts_ts_id[] = {

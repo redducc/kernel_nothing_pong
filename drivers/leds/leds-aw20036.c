@@ -1274,7 +1274,7 @@ static ssize_t aw20036_hwid_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	pr_info("%s: \"%s\" (%d)\n", __func__, buf, len);
+	pr_info("%s: \"%s\" (%zu)\n", __func__, buf, len);
 
 	if(len > sizeof(hw_ver)){
 		pr_info("%s: invalid hwid \n", __func__);
@@ -1320,7 +1320,7 @@ static ssize_t aw20036_dev_color_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	pr_info("%s: \"%s\" (%d)\n", __func__, buf, len);
+	pr_info("%s: \"%s\" (%zu)\n", __func__, buf, len);
 
 	if(len > sizeof(dev_color)){
 		pr_info("%s: invalid hwid \n", __func__);
@@ -2065,8 +2065,7 @@ static struct miscdevice led_strips_dev = {
  * i2c driver
  *
  ******************************************************/
-static int aw20036_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+static int aw20036_i2c_probe(struct i2c_client *i2c)
 {
 	struct aw20036 *aw20036;
 	struct device_node *np = i2c->dev.of_node;
@@ -2219,8 +2218,6 @@ static int aw20036_i2c_probe(struct i2c_client *i2c,
 	devm_free_irq(&i2c->dev, gpio_to_irq(aw20036->irq_gpio), aw20036);
  err_irq:
  err_id:
-	devm_gpio_free(&i2c->dev, aw20036->reset_gpio);
-	devm_gpio_free(&i2c->dev, aw20036->irq_gpio);
  err_gpio_request:
  err_parse_dt:
 	devm_kfree(&i2c->dev, aw20036);
@@ -2228,7 +2225,7 @@ static int aw20036_i2c_probe(struct i2c_client *i2c,
 	return ret;
 }
 
-static int aw20036_i2c_remove(struct i2c_client *i2c)
+static void aw20036_i2c_remove(struct i2c_client *i2c)
 {
 	struct aw20036 *aw20036 = i2c_get_clientdata(i2c);
 
@@ -2238,15 +2235,10 @@ static int aw20036_i2c_remove(struct i2c_client *i2c)
 
 	devm_free_irq(&i2c->dev, gpio_to_irq(aw20036->irq_gpio), aw20036);
 
-	if (gpio_is_valid(aw20036->reset_gpio))
-		devm_gpio_free(&i2c->dev, aw20036->reset_gpio);
-	if (gpio_is_valid(aw20036->irq_gpio))
-		devm_gpio_free(&i2c->dev, aw20036->irq_gpio);
 
 	devm_kfree(&i2c->dev, aw20036);
 	aw20036 = NULL;
 
-	return 0;
 }
 
 #define POWER_SUSPEND

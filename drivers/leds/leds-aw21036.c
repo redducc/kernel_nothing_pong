@@ -588,9 +588,9 @@ free_pdata:
  * i2c driver
  *
  ******************************************************/
-static int aw21036_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+static int aw21036_i2c_probe(struct i2c_client *i2c)
 {
+	const struct i2c_device_id *id = i2c_client_get_device_id(i2c);
 	struct aw21036 *aw21036;
 	struct device_node *np = i2c->dev.of_node;
 	int ret;
@@ -667,7 +667,6 @@ static int aw21036_i2c_probe(struct i2c_client *i2c,
 
 err_sysfs:
 err_id:
-	devm_gpio_free(&i2c->dev, aw21036->reset_gpio);
 err_gpio_request:
 err_parse_dt:
 	devm_kfree(&i2c->dev, aw21036);
@@ -675,7 +674,7 @@ err_parse_dt:
 	return ret;
 }
 
-static int aw21036_i2c_remove(struct i2c_client *i2c)
+static void aw21036_i2c_remove(struct i2c_client *i2c)
 {
 	struct aw21036 *aw21036 = i2c_get_clientdata(i2c);
 
@@ -683,13 +682,10 @@ static int aw21036_i2c_remove(struct i2c_client *i2c)
 	sysfs_remove_group(&aw21036->cdev.dev->kobj, &aw21036_attribute_group);
 	led_classdev_unregister(&aw21036->cdev);
 
-	if (gpio_is_valid(aw21036->reset_gpio))
-		devm_gpio_free(&i2c->dev, aw21036->reset_gpio);
 
 	devm_kfree(&i2c->dev, aw21036);
 	aw21036 = NULL;
 
-	return 0;
 }
 
 static const struct i2c_device_id aw21036_i2c_id[] = {

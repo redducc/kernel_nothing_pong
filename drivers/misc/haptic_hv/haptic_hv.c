@@ -1621,7 +1621,7 @@ static int ram_update(struct aw_haptic *aw_haptic)
 {
 	aw_haptic->ram_init = false;
 	aw_haptic->rtp_init = false;
-	return request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+	return request_firmware_nowait(THIS_MODULE, FW_ACTION_UEVENT,
 				       aw_ram_name, aw_haptic->dev, GFP_KERNEL,
 				       aw_haptic, ram_load);
 }
@@ -3772,7 +3772,8 @@ static void haptic_init(struct aw_haptic *aw_haptic)
 	if (strcmp(uefi_f0_calidata, "NA") == 0) {
 		f0_calidata = 0;
 	} else {
-		kstrtoint(uefi_f0_calidata,10, &f0_calidata);
+		if (kstrtoint(uefi_f0_calidata, 10, &f0_calidata))
+			f0_calidata = 0;
 	}
 
 	f0_calidata_to_register=(uint8_t)f0_calidata;
@@ -3780,7 +3781,8 @@ static void haptic_init(struct aw_haptic *aw_haptic)
 	if (0 == strcmp(uefi_f0, "NA")) {
 		uefi_f0_tmp = 1700;
 	} else {
-		kstrtoint(uefi_f0,10, &uefi_f0_tmp);
+		if (kstrtoint(uefi_f0, 10, &uefi_f0_tmp))
+			uefi_f0_tmp = 1700;
 	}
 
 	aw_info("enter");
@@ -3824,7 +3826,7 @@ static void haptic_init(struct aw_haptic *aw_haptic)
 							AW_I2C_BYTE_ONE);
 }
 
-static int aw_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+static int aw_i2c_probe(struct i2c_client *i2c)
 {
 	int ret = 0;
 	struct aw_haptic *aw_haptic;
@@ -4011,12 +4013,8 @@ richtap_err1:
 err_id:
 err_ctrl_init:
 err_irq_config:
-	if (gpio_is_valid(aw_haptic->irq_gpio))
-		devm_gpio_free(&i2c->dev, aw_haptic->irq_gpio);
 
 err_irq_gpio_request:
-	if (gpio_is_valid(aw_haptic->reset_gpio))
-		devm_gpio_free(&i2c->dev, aw_haptic->reset_gpio);
 
 err_parse_dt:
 err_reset_gpio_request:
@@ -4025,7 +4023,7 @@ err_reset_gpio_request:
 	return ret;
 }
 
-static int aw_remove(struct i2c_client *i2c)
+static void aw_remove(struct i2c_client *i2c)
 {
 	struct aw_haptic *aw_haptic = i2c_get_clientdata(i2c);
 
@@ -4051,8 +4049,6 @@ static int aw_remove(struct i2c_client *i2c)
 	mutex_destroy(&aw_haptic->rtp_lock);
 	mutex_destroy(&aw_haptic->haptic_audio.lock);
 	devm_free_irq(&i2c->dev, gpio_to_irq(aw_haptic->irq_gpio), aw_haptic);
-	if (gpio_is_valid(aw_haptic->irq_gpio))
-		devm_gpio_free(&i2c->dev, aw_haptic->irq_gpio);
 #ifdef AW_SND_SOC_CODEC
 #ifdef KERNEL_OVER_4_19
 	snd_soc_unregister_component(&i2c->dev);
@@ -4083,10 +4079,7 @@ static int aw_remove(struct i2c_client *i2c)
 #endif
 #endif
 
-	if (gpio_is_valid(aw_haptic->reset_gpio))
-		devm_gpio_free(&i2c->dev, aw_haptic->reset_gpio);
 
-	return 0;
 }
 
 static int aw_i2c_suspend(struct device *dev)
