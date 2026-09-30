@@ -10,7 +10,7 @@ rm -rf vdlkm && cp -a vdlkm_stock vdlkm
 python3 $HERE/compose.py ramdisk 2>&1 | tail -1
 python3 $HERE/compose.py vendor_dlkm 2>&1 | tail -1
 cp uvb/bootconfig out/bootconfig
-printf 'androidboot.init_fatal_panic=true\nandroidboot.selinux=permissive\n' >> out/bootconfig
+printf 'androidboot.init_fatal_panic=true\n' >> out/bootconfig
 cat $D/capep.dtb $D/cape.dtb $D/cape-v2.dtb > out/dtb
 (cd vr && find . | LC_ALL=C sort | cpio -o -H newc -R 0:0 2>/dev/null) | lz4 -l -12 --favor-decSpeed > out/vendor_ramdisk00
 rm -f out/vendor_boot.img out/vendor_dlkm.img
