@@ -304,6 +304,15 @@
 };
 
 &firmware {
+	android {
+		compatible = "android,firmware";
+
+		vbmeta {
+			compatible = "android,vbmeta";
+			parts = "vbmeta,boot,system,vendor,dtbo,recovery";
+		};
+	};
+
 	qcom_scm {
 		compatible = "qcom,scm";
 		qcom,dload-mode = <&tcsr 0x13000>;
