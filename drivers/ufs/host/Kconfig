@@ -164,3 +164,15 @@ config SCSI_UFS_CRYPTO_QTI
 
 	  Select this to enable QCOM Hardware Wrapped Key support for the
 	  ICE hardware.
+
+config UFSFEATURE
+	bool "UFS feature activate"
+	depends on SCSI_UFS_QCOM
+	help
+	  UFS feature activate such as hpb, tw and etc.
+
+config UFSHID
+	bool "UFS Host Initiated Defrag support"
+	depends on UFSFEATURE
+	help
+	  UFS HID Feature Enable
