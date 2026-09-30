@@ -69,6 +69,7 @@ def define_waipio(t,v):
         config_options = [
             "CONFIG_MSM_VIDC_WAIPIO",
             "CONFIG_MSM_VIDC_IRIS2",
+            "CONFIG_MSM_MMRM",
         ],
     )
 

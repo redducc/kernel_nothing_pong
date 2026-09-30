@@ -49,4 +49,9 @@ module_entry(
             "driver/variant/ar50lt/src/msm_vidc_ar50lt.c",
         ],
     },
+    config_deps = {
+        "CONFIG_MSM_MMRM" : [
+            "//vendor/nothing/pong-modules/qcom/opensource/mmrm-driver:%b_mmrm_driver",
+        ],
+    },
 )

@@ -19,6 +19,7 @@ def _register_module_to_map(module_map, name, path, config_option, srcs, config_
         config_srcs = processed_config_srcs,
         config_option = config_option,
         deps = deps,
+        config_deps = config_deps,
     )
     module_map[name] = module
 
@@ -41,7 +42,11 @@ def _get_kernel_build_module_srcs(module, options, formatter):
     return globbed_srcs
 
 def _get_kernel_build_module_deps(module, options, formatter):
-    return [formatter(dep) for dep in module.deps]
+    deps = list(module.deps)
+    for option, option_deps in module.config_deps.items():
+        if option in options:
+            deps += option_deps
+    return [formatter(dep) for dep in deps]
 
 def video_module_entry(hdrs = []):
     module_map = {}
