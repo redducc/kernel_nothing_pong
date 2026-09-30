@@ -7846,6 +7846,15 @@ long qseecom_ioctl(struct file *file,
 	__wakeup_unload_app_kthread();
 
 	switch (cmd) {
+	/*
+	 * Dropped from the 6.6 UAPI but still issued by phone2's 5.10 clients
+	 * (QSEECom_set_bandwidth); 5.10 returned 0 as cape has no qseecom clocks.
+	 */
+	case _IO(QSEECOM_IOC_MAGIC, 11):		/* PERF_ENABLE_REQ */
+	case _IO(QSEECOM_IOC_MAGIC, 12):		/* PERF_DISABLE_REQ */
+	case _IOWR(QSEECOM_IOC_MAGIC, 23, int):	/* SET_BUS_SCALING_REQ */
+		ret = 0;
+		break;
 	case QSEECOM_IOCTL_REGISTER_LISTENER_REQ: {
 		mutex_lock(&listener_access_lock);
 		if (data->type != QSEECOM_GENERIC) {
