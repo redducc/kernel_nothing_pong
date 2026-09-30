@@ -33,6 +33,10 @@
 		hsuart0 = &qupv3_se20_4uart;
 		ufshc1 = &ufshc_mem; /* Embedded UFS Slot */
 		mmc1 = &sdhc_2; /* SDC2 SD card slot */
+		i2c0 = &qupv3_se5_i2c;
+		i2c1 = &qupv3_se9_i2c;
+		i2c2 = &qupv3_se13_i2c;
+		i2c3 = &qupv3_se18_i2c;
 	};
 
 	sram: sram@17D09400 {
@@ -428,6 +432,12 @@
 		alloc-ranges = <0x0 0x00000000 0xffffffff 0xffffffff>;
 		size = <0x0 0x200000>;
 		no-map;
+	};
+};
+
+&reserved_memory {
+	ramoops_mem {
+		/delete-property/ alloc-ranges;
 	};
 };
 
@@ -2204,6 +2214,12 @@
 			reg = <0x65c 0x4>;
 		};
 
+		restart_info@e0{
+			compatible ="nothing,msm-imem-restart_info";
+			reg = <0xe0 0x64>;
+			info_size = <0x64>;
+		};
+
 		dload_type@1c {
 			compatible = "qcom,msm-imem-dload-type";
 			reg = <0x1c 0x4>;
@@ -2732,14 +2748,6 @@
 		};
 	};
 
-	qcom,gh_vm_loader_sec@e0b00000 {
-		compatible = "qcom,gh-vm-loader-sec";
-		qcom,pas-id = <28>;
-		qcom,vmid = <45>;
-		qcom,firmware-name = "trustedvm";
-		memory-region = <&trust_ui_vm_mem>;
-	};
-
 	qcom,gh_vm_loader_sec@e0600000 {
 		compatible = "qcom,gh-vm-loader-sec";
 		qcom,pas-id = <35>;
@@ -2753,17 +2761,6 @@
 		compatible = "qcom,tlmm-vm-mem-access";
 		qcom,master;
 		tlmm-vm-gpio-list = <365 366 367 368 301 305 387 388 317 318 319 320 321 322>;
-	};
-
-	qcom,guestvm_loader@e0b00000 {
-		compatible = "qcom,guestvm-loader";
-		qcom,pas-id = <28>;
-		qcom,isolate-cpus;
-		qcom,vmid = <45>;
-		qcom,firmware-name = "trustedvm";
-		qcom,reserved-cpus = <0x5>, <0x6>;
-		qcom,unisolate-timeout-ms = <12000>;
-		memory-region = <&trust_ui_vm_mem>;
 	};
 
 	qcom,guestvm_loader@e0600000 {
