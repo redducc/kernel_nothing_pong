@@ -55,7 +55,14 @@ fs_set = set(fs)
 NOTHING = ['hardware_id.ko', 'secure_state.ko', 'slot_status.ko', 'leds_aw20036.ko', 'haptic.ko',
            'goodix_fp.ko', 'goodix_core.ko', 'fts_tp.ko', 'simulated_ntc.ko', 'nothing_bootloader_log.ko',
            'nothing_restart_handler.ko', 'nothing_secure_element.ko', 'nothing_task_meminfo.ko', 'tfa98xx_dlkm.ko']
-vd_order = mapped(read(W + '/vdlkm_stock/lib/modules/modules.load'), 'vendor_dlkm') + NOTHING
+# Built into the 5.10 GKI kernel but modules on 6.6; the ROM's system_dlkm is still 5.10,
+# so ship them here (netmgrd needs AF_TIPC)
+GKI_WAS_BUILTIN = ['tipc.ko', 'bluetooth.ko', 'hci_uart.ko', 'btsdio.ko', 'hidp.ko', 'rfcomm.ko',
+                   '6lowpan.ko', 'can.ko', 'can_raw.ko', 'ieee802154.ko', 'ieee802154_6lowpan.ko',
+                   'mac802154.ko', 'l2tp_core.ko', 'l2tp_ppp.ko', 'ppp_generic.ko', 'bsd_comp.ko',
+                   'ppp_deflate.ko', 'ppp_mppe.ko', 'pppox.ko', 'pptp.ko', 'usbnet.ko', 'cdc_eem.ko',
+                   'aqc111.ko', 'rtl8150.ko', 'r8152.ko', 'cdc_acm.ko', 'nfc.ko', 'xhci_pci_renesas.ko']
+vd_order = mapped(read(W + '/vdlkm_stock/lib/modules/modules.load'), 'vendor_dlkm') + NOTHING + GKI_WAS_BUILTIN
 rest = sorted(k for k in avail if k not in gki and not EXCL.match(k))
 vd = [k for k in closure(vd_order + rest) if k not in fs_set and not EXCL.match(k)]
 # vendor_modprobe.sh only sets vendor.all.modules.ready if the first module loads
