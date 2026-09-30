@@ -88,6 +88,8 @@
 		<0 0>;
 	multi-level-clk-scaling-support;
 	axi-turbo-l1-clk-freq = <850000000>;
+	/* Only the turbo clock rate; the link-startup turbo bits crash cape at boot */
+	qcom,turbo-steps = <0>;
 
 	status = "ok";
 };
