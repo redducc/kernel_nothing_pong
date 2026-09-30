@@ -75,6 +75,20 @@
 	qcom,vddp-ref-clk-supply = <&L9B>;
 	qcom,vddp-ref-clk-max-microamp = <100>;
 
+	/* HS-G4 needs the turbo core/unipro/ice clocks on cape, as on 5.10 */
+	freq-table-hz =
+		<75000000 850000000>,
+		<0 0>,
+		<0 0>,
+		<75000000 850000000>,
+		<75000000 850000000>,
+		<0 0>,
+		<0 0>,
+		<0 0>,
+		<0 0>;
+	multi-level-clk-scaling-support;
+	axi-turbo-l1-clk-freq = <850000000>;
+
 	status = "ok";
 };
 
