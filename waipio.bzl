@@ -93,6 +93,7 @@ def define_waipio():
         "drivers/misc/slot_status.ko",
         "drivers/mmc/host/cqhci.ko",
         "drivers/mmc/host/sdhci-msm.ko",
+        "drivers/nfc/qti/nfc_i2c.ko",
         "drivers/nothing_stability/nothing_bootloader_log.ko",
         "drivers/nothing_stability/nothing_restart_handler.ko",
         "drivers/nothing_stability/nothing_secure_element.ko",
