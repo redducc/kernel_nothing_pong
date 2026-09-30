@@ -228,6 +228,10 @@ enum ufs_qcom_phy_init_type {
 
 #define PA_VS_CLK_CFG_REG	0x9004
 #define PA_VS_CLK_CFG_REG_MASK	0x1FF
+#define PA_VS_CLK_CFG_REG_MASK_TURBO	0x100
+#define ATTR_HW_CGC_EN_TURBO		0x100
+#define TEST_BUS_CTRL_2_HCI_SEL_TURBO_MASK	0x010
+#define TEST_BUS_CTRL_2_HCI_SEL_TURBO		0x010
 
 #define PA_VS_CORE_CLK_40NS_CYCLES	0x9007
 #define PA_VS_CORE_CLK_40NS_CYCLES_MASK	0x3F
@@ -569,6 +573,9 @@ struct ufs_qcom_host {
 	struct ufs_vreg *vccq_proxy_client;
 	bool work_pending;
 	bool bypass_g4_cfgready;
+	/* waipio/cape turbo: core/unipro/ice run above 300MHz */
+	bool turbo;
+	bool turbo_additional_conf_req;
 	bool is_phy_pwr_on;
 	/* Protect the usage of is_phy_pwr_on against racing */
 	struct mutex phy_mutex;
