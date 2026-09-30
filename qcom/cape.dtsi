@@ -429,8 +429,11 @@
 	};
 
 	ramoops_mem: ramoops_region {
+		compatible = "ramoops";
 		alloc-ranges = <0x0 0x00000000 0xffffffff 0xffffffff>;
 		size = <0x0 0x200000>;
+		pmsg-size = <0x200000>;
+		mem-type = <2>;
 		no-map;
 	};
 };
@@ -2084,6 +2087,7 @@
 		memory-region = <&ramoops_mem>;
 		pmsg-size = <0x200000>;
 		mem-type = <2>;
+		status = "disabled";
 	};
 
 	logbuf: qcom,logbuf-vendor-hooks {
