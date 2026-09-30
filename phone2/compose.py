@@ -61,7 +61,12 @@ vd = [k for k in closure(vd_order + rest) if k not in fs_set and not EXCL.match(
 # vendor_modprobe.sh only sets vendor.all.modules.ready if the first module loads
 vd = ['zsmalloc.ko'] + [k for k in vd if k != 'zsmalloc.ko']
 
+# Ship these but leave them out of the load lists, e.g. to insmod a crashing module by hand
+NOLOAD = set(os.environ.get('NOLOAD', '').split())
+
 def stage(root, mods, prefix, load, extra_loads):
+    load = [k for k in load if k not in NOLOAD]
+    extra_loads = {fn: [k for k in lst if k not in NOLOAD] for fn, lst in extra_loads.items()}
     moddir = os.path.join(root, 'lib/modules')
     shutil.rmtree(moddir, ignore_errors=True)
     rel = '6.6.0-staging'
