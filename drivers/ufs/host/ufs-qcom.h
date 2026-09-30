@@ -576,6 +576,7 @@ struct ufs_qcom_host {
 	/* waipio/cape turbo: core/unipro/ice run above 300MHz */
 	bool turbo;
 	bool turbo_additional_conf_req;
+	u32 turbo_steps;
 	bool is_phy_pwr_on;
 	/* Protect the usage of is_phy_pwr_on against racing */
 	struct mutex phy_mutex;

@@ -1331,7 +1331,8 @@ static int __ufs_qcom_cfg_timers(struct ufs_hba *hba, u32 gear,
 
 	core_clk_cycles_per_us = core_clk_rate / USEC_PER_SEC;
 	/* HPG: SYS1CLK_1US is Fs/2 (rounded up) when running beyond 300MHz on turbo targets */
-	if (core_clk_rate > 300000000 && host->turbo_additional_conf_req)
+	if (core_clk_rate > 300000000 && host->turbo_additional_conf_req &&
+	    (host->turbo_steps & BIT(2)))
 		core_clk_cycles_per_us = core_clk_cycles_per_us / 2 +
 					 (core_clk_cycles_per_us % 2);
 	if (ufshcd_readl(hba, REG_UFS_SYS1CLK_1US) != core_clk_cycles_per_us) {
@@ -1601,12 +1602,13 @@ static int ufs_qcom_link_startup_notify(struct ufs_hba *hba,
 			return -ENODEV;
 
 		if (host->turbo) {
-			if (host->turbo_additional_conf_req)
+			if (host->turbo_additional_conf_req && (host->turbo_steps & BIT(0)))
 				ufshcd_rmwl(hba, TEST_BUS_CTRL_2_HCI_SEL_TURBO_MASK,
 					    TEST_BUS_CTRL_2_HCI_SEL_TURBO,
 					    UFS_TEST_BUS_CTRL_2);
-			err = ufshcd_dme_rmw(hba, PA_VS_CLK_CFG_REG_MASK_TURBO,
-					     ATTR_HW_CGC_EN_TURBO, PA_VS_CLK_CFG_REG);
+			if (host->turbo_steps & BIT(1))
+				err = ufshcd_dme_rmw(hba, PA_VS_CLK_CFG_REG_MASK_TURBO,
+						     ATTR_HW_CGC_EN_TURBO, PA_VS_CLK_CFG_REG);
 			if (err)
 				dev_err(dev, "%s: turbo setting failed %d\n", __func__, err);
 		}
@@ -2665,6 +2667,11 @@ static void ufs_qcom_set_caps(struct ufs_hba *hba)
 	host->turbo = of_property_read_bool(np, "multi-level-clk-scaling-support");
 	of_property_read_u32(np, "axi-turbo-l1-clk-freq", &turbo_l1_freq);
 	host->turbo_additional_conf_req = host->turbo && turbo_l1_freq > 403000000;
+	/* bit0: HCI turbo select, bit1: PA_VS turbo CGC, bit2: SYS1CLK Fs/2 */
+	host->turbo_steps = 0x7;
+	of_property_read_u32(np, "qcom,turbo-steps", &host->turbo_steps);
+	dev_info(hba->dev, "turbo %d additional %d steps 0x%x\n", host->turbo,
+		 host->turbo_additional_conf_req, host->turbo_steps);
 
 	if (!host->disable_lpm) {
 		hba->caps |= UFSHCD_CAP_CLK_GATING |
