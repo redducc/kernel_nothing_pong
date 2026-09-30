@@ -1281,7 +1281,7 @@ static ssize_t aw20036_hwid_store(struct device *dev,
 		return len;
 	}
 	memset(hw_ver, 0, sizeof(hw_ver));
-	strcpy(hw_ver, buf);
+	strscpy(hw_ver, buf, sizeof(hw_ver));
 	if(strncmp(hw_ver, "T0", 2) == 0){
 		pr_info("%s: hwid is T0\n", __func__);
 		aw20036_reg_page_cfg(aw20036, AW20036_REG_PAGE1);
@@ -1327,7 +1327,7 @@ static ssize_t aw20036_dev_color_store(struct device *dev,
 		return len;
 	}
 	memset(dev_color, 0, sizeof(dev_color));
-	strcpy(dev_color, buf);
+	strscpy(dev_color, buf, sizeof(dev_color));
 	if(strncmp(dev_color, "gray", 4) == 0){
 		pr_info("%s: device color is gray\n", __func__);
 		aw20036_imax_cfg(aw20036, 0x05);

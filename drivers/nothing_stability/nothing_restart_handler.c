@@ -14,22 +14,19 @@ struct nothing_restart_notify {
 	struct notifier_block reboot_nb;
 };
 
-struct nothing_restart_info {
-	char msg;
-};
-
-static struct nothing_restart_info *restart_info;
+static void __iomem *restart_info;
 static unsigned rst_msg_size;
 
 static inline void set_restart_msg(const char *msg)
 {
+	size_t len = 0;
+
 	if (msg) {
 		pr_info("%s: %s \n", __func__, msg);
-		strncpy(&restart_info->msg, msg, rst_msg_size - 1);
+		len = strnlen(msg, rst_msg_size - 1);
+		memcpy_toio(restart_info, msg, len);
 	}
-	else {
-		strncpy(&restart_info->msg, "", rst_msg_size - 1);
-	}
+	writeb(0, restart_info + len);
 	mb();
 }
 
@@ -90,7 +87,7 @@ static int nothing_restart_info_probe(struct platform_device *pdev)
 				}
 		}
 	}
-	rst_msg_size = nothing_rst_info_size - offsetof(struct nothing_restart_info, msg);
+	rst_msg_size = nothing_rst_info_size;
 	if (rst_msg_size > MAX_SZ_DIAG_ERR_MSG)
 		rst_msg_size = MAX_SZ_DIAG_ERR_MSG;
 
