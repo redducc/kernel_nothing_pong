@@ -627,6 +627,9 @@ struct sde_connector {
 	u32 bl_scale_sv;
 	u32 unset_bl_level;
 	bool allow_bl_update;
+	bool fingerlayer_dirty;
+	u32 finger_flag;
+
 	bool dimming_bl_notify_enabled;
 
 	u32 hdr_eotf;
@@ -1373,5 +1376,11 @@ const char *sde_conn_get_topology_name(struct drm_connector *conn,
  * @Return: line insertion support status
  */
 bool sde_connector_is_line_insertion_supported(struct sde_connector *sde_conn);
+
+ssize_t nt_tx_cmd(struct sde_connector *c_conn, const char *buf, size_t count);
+ssize_t nt_rx_cmd(struct sde_connector *c_conn, const char *buf, size_t count);
+
+int set_refresh_rate(struct sde_connector *sde_conn, int index);
+int get_refresh_rate(struct sde_connector *sde_conn);
 
 #endif /* _SDE_CONNECTOR_H_ */
