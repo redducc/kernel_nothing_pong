@@ -1960,11 +1960,12 @@ static int sde_connector_atomic_set_property(struct drm_connector *connector,
 			memset(&c_conn->previous_misr_sign, 0, sizeof(struct sde_misr_sign));
 		break;
 	case CONNECTOR_PROP_FINGER_FLAG:
-		SDE_ERROR_CONN(c_conn, "set finger flag: %d\n", val);
+		SDE_ERROR_CONN(c_conn, "set finger flag: %llu\n", val);
 		if (c_conn->finger_flag != val) {
 			c_conn->finger_flag = val;
 			c_conn->fingerlayer_dirty = true;
 		}
+		break;
 	default:
 		break;
 	}
@@ -2611,6 +2612,20 @@ static ssize_t _sde_debugfs_conn_cmd_rx_write(struct file *file,
 	if (c_conn->rx_len <= 0)
 		rc = -EINVAL;
 	else
+		rc = count;
+end1:
+	kfree(input_dup);
+end:
+	kfree(input);
+	return rc;
+}
+
+static const struct file_operations conn_cmd_rx_fops = {
+	.open =         _sde_debugfs_conn_cmd_rx_open,
+	.read =         _sde_debugfs_conn_cmd_rx_read,
+	.write =        _sde_debugfs_conn_cmd_rx_write,
+};
+
 ssize_t nt_tx_cmd(struct sde_connector *c_conn, const char *buf, size_t count)
 {
 	struct sde_vm_ops *vm_ops;
@@ -2621,7 +2636,7 @@ ssize_t nt_tx_cmd(struct sde_connector *c_conn, const char *buf, size_t count)
 	int rc = 0, strtoint = 0;
 	u32 buf_size = 0;
 
-	sde_kms = _sde_connector_get_kms(&c_conn->base);
+	sde_kms = sde_connector_get_kms(&c_conn->base);
 	if (!sde_kms) {
 		SDE_ERROR("invalid kms\n");
 		return -EINVAL;
@@ -2762,7 +2777,7 @@ ssize_t nt_rx_cmd(struct sde_connector *c_conn, const char *buf, size_t count)
 
 	mutex_lock(&c_conn->lock);
 	c_conn->rx_len = c_conn->ops.cmd_receive(c_conn->display, buffer + 1,
-			buf_size - 1, c_conn->cmd_rx_buf, buffer[0]);
+			buf_size - 1, c_conn->cmd_rx_buf, buffer[0], NULL);
 	mutex_unlock(&c_conn->lock);
 
 	if (c_conn->rx_len <= 0)
@@ -3083,7 +3098,7 @@ static ssize_t store_skip_frame_mode(struct kobject *kobj,struct kobj_attribute 
 		return rc;
 
 	if (90 == nt_cur_refresh_rate || 60 == nt_cur_refresh_rate) {
-		SDE_ERROR("current refresh rate: %d, set to index %d failed\n", nt_cur_refresh_rate, refresh_rate_index);
+		SDE_ERROR("current refresh rate: %d, set to index %lu failed\n", nt_cur_refresh_rate, refresh_rate_index);
 		return -EINVAL;
 	}
 
@@ -3093,7 +3108,7 @@ static ssize_t store_skip_frame_mode(struct kobject *kobj,struct kobj_attribute 
 		return -EINVAL;
 	}
 
-	SDE_ERROR("set refresh rate, index: %d\n", refresh_rate_index);
+	SDE_ERROR("set refresh rate, index: %lu\n", refresh_rate_index);
 
 	return size;
 }
@@ -3127,20 +3142,6 @@ static struct attribute *panel_feature_attributes[] = {
 
 static const struct attribute_group panel_feature_attr_group = {
 	.attrs = panel_feature_attributes,
-};
-
-		rc = count;
-end1:
-	kfree(input_dup);
-end:
-	kfree(input);
-	return rc;
-}
-
-static const struct file_operations conn_cmd_rx_fops = {
-	.open =         _sde_debugfs_conn_cmd_rx_open,
-	.read =         _sde_debugfs_conn_cmd_rx_read,
-	.write =        _sde_debugfs_conn_cmd_rx_write,
 };
 
 #if IS_ENABLED(CONFIG_DEBUG_FS)
@@ -3189,6 +3190,33 @@ static int sde_connector_init_debugfs(struct drm_connector *connector)
 			connector->debugfs_entry,
 			connector, &conn_cmd_rx_fops)) {
 			SDE_ERROR("failed to create connector cmd_rx\n");
+			return -ENOMEM;
+		}
+	}
+
+	if (sde_connector->ops.cmd_receive) {
+		if (!debugfs_create_file("panel_id1", 0600,
+			connector->debugfs_entry,
+			connector, &conn_cmd_panel_id_da_fops)) {
+			SDE_ERROR("failed to create connector panel_id1\n");
+			return -ENOMEM;
+		}
+	}
+
+	if (sde_connector->ops.cmd_receive) {
+		if (!debugfs_create_file("panel_id2", 0600,
+			connector->debugfs_entry,
+			connector, &conn_cmd_panel_id_db_fops)) {
+			SDE_ERROR("failed to create connector panel_id2\n");
+			return -ENOMEM;
+		}
+	}
+
+	if (sde_connector->ops.cmd_receive) {
+		if (!debugfs_create_file("panel_id3", 0600,
+			connector->debugfs_entry,
+			connector, &conn_cmd_panel_id_dc_fops)) {
+			SDE_ERROR("failed to create connector panel_id3\n");
 			return -ENOMEM;
 		}
 	}
@@ -3910,6 +3938,11 @@ static int _sde_connector_install_properties(struct drm_device *dev,
 	c_conn->bl_scale = MAX_BL_SCALE_LEVEL;
 	c_conn->bl_scale_sv = MAX_SV_BL_SCALE_LEVEL;
 
+	msm_property_install_range(&c_conn->property_info, "finger_flag",
+		0x0, 0, 255, 0, CONNECTOR_PROP_FINGER_FLAG);
+	c_conn->fingerlayer_dirty = false;
+	c_conn->finger_flag = 0;
+
 	if (connector_type == DRM_MODE_CONNECTOR_DisplayPort)
 		msm_property_install_range(&c_conn->property_info,
 			"supported_colorspaces",
@@ -3936,33 +3969,6 @@ static int _sde_connector_install_properties(struct drm_device *dev,
 			msm_property_install_range(&c_conn->property_info, "brightness",
 			0x0, 0, 0xFFFF, 0,
 			CONNECTOR_PROP_BRIGHTNESS);
-		}
-	}
-
-	if (sde_connector->ops.cmd_receive) {
-		if (!debugfs_create_file("panel_id1", 0600,
-			connector->debugfs_entry,
-			connector, &conn_cmd_panel_id_da_fops)) {
-			SDE_ERROR("failed to create connector panel_id1\n");
-			return -ENOMEM;
-		}
-	}
-
-	if (sde_connector->ops.cmd_receive) {
-		if (!debugfs_create_file("panel_id2", 0600,
-			connector->debugfs_entry,
-			connector, &conn_cmd_panel_id_db_fops)) {
-			SDE_ERROR("failed to create connector panel_id2\n");
-			return -ENOMEM;
-		}
-	}
-
-	if (sde_connector->ops.cmd_receive) {
-		if (!debugfs_create_file("panel_id3", 0600,
-			connector->debugfs_entry,
-			connector, &conn_cmd_panel_id_dc_fops)) {
-			SDE_ERROR("failed to create connector panel_id3\n");
-			return -ENOMEM;
 		}
 	}
 
@@ -4263,8 +4269,3 @@ bool sde_connector_is_line_insertion_supported(struct sde_connector *sde_conn)
 
 	return display->panel->host_config.line_insertion_enable;
 }
-	msm_property_install_range(&c_conn->property_info, "finger_flag",
-		0x0, 0, 255, 0, CONNECTOR_PROP_FINGER_FLAG);
-	c_conn->fingerlayer_dirty = false;
-	c_conn->finger_flag = 0;
-

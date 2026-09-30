@@ -6174,7 +6174,7 @@ sde_crtc_fod_atomic_check(struct sde_crtc_state *cstate,
 		if (pstates[plane_idx].stage >= dim_layer_stage) {
 			pstates[plane_idx].stage++;
 			pstates[plane_idx].sde_pstate->stage++;
-			if (kms->catalog->has_base_layer)
+			if (test_bit(SDE_FEATURE_BASE_LAYER, kms->catalog->features))
 				pstates[plane_idx].sde_pstate->stage++;
 		}
 	}
@@ -6218,7 +6218,7 @@ static int _sde_crtc_atomic_check_pstates(struct drm_crtc *crtc,
 
 	for (i = 0; i < cnt; i++) {
 		rc = _sde_crtc_noise_layer_check_zpos(cstate,
-				kms->catalog->has_base_layer ?
+				test_bit(SDE_FEATURE_BASE_LAYER, kms->catalog->features) ?
 				pstates[i].sde_pstate->stage : pstates[i].stage);
 		if (rc)
 			return rc;

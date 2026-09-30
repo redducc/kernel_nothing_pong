@@ -167,7 +167,7 @@ int get_refresh_rate(struct sde_connector *sde_conn)
 				break;
 			default:
 				index = -1;
-				SDE_ERROR("unknown 6d value: %d\n", reg_6d);
+				SDE_ERROR("unknown 6d value: %d\n", reg_6d[0]);
 				break;
 			}
 		} else {
@@ -194,7 +194,7 @@ int get_refresh_rate(struct sde_connector *sde_conn)
 				break;
 			default:
 				index = -1;
-				SDE_ERROR("unknown 6d value: %d\n", reg_6d);
+				SDE_ERROR("unknown 6d value: %d\n", reg_6d[0]);
 				break;
 			}
 		}
