@@ -37,6 +37,7 @@ def define_waipio():
             "wsa883x_dlkm",
             "wcd938x_dlkm",
             "wcd938x_slave_dlkm",
+            "tfa98xx_dlkm",
         ],
         config_options = [
             "CONFIG_SND_SOC_WAIPIO",

@@ -409,6 +409,48 @@ audio_modules.register(
         "wsa884x-tables.c",
     ]
 )
+# >>>> TFA98XX MODULE <<<<
+audio_modules.register(
+    name = "tfa98xx_dlkm",
+    path = ASOC_CODECS_PATH + "/tfa98xx",
+    config_option = "CONFIG_SND_SOC_TFA98XX",
+    srcs = [
+        "tfa98xx.c",
+        "tfa_container.c",
+        "tfa_dsp.c",
+        "tfa_init.c",
+        "config.h",
+        "dbgprint.h",
+        "tfa.h",
+        "tfa1_tfafieldnames.h",
+        "tfa2_tfafieldnames_N1C.h",
+        "tfa9872_device_genregs_POR.h",
+        "tfa9872_tfafieldnames.h",
+        "tfa9873_tfafieldnames.h",
+        "tfa9873_tfafieldnames_B0.h",
+        "tfa9874_tfafieldnames.h",
+        "tfa9878_tfafieldnames.h",
+        "tfa9887_tfafieldnames.h",
+        "tfa9890_tfafieldnames.h",
+        "tfa9891_genregs.h",
+        "tfa9891_tfafieldnames.h",
+        "tfa9894_tfafieldnames.h",
+        "tfa9894_tfafieldnames_N2.h",
+        "tfa9896_tfafieldnames.h",
+        "tfa98xx.h",
+        "tfa98xx_genregs_N1C.h",
+        "tfa98xx_parameters.h",
+        "tfa98xx_tfafieldnames.h",
+        "tfa9912_device_genregs.h",
+        "tfa9912_tfafieldnames.h",
+        "tfa_container.h",
+        "tfa_device.h",
+        "tfa_dsp_fw.h",
+        "tfa_ext.h",
+        "tfa_internal.h",
+        "tfa_service.h",
+    ]
+)
 # >>>> WCD937X MODULES <<<<
 audio_modules.register(
     name = "wcd937x_dlkm",

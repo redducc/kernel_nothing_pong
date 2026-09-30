@@ -1529,7 +1529,7 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev,
 			case STEREO_SPEAKER:
 				rc = of_property_read_u32(dev->of_node, "qcom,wsa-max-devs ", &val);
 				if (!rc && val) {
-					dev_dbg(dev, "%s(): WSA support present\n");
+					dev_dbg(dev, "%s(): WSA support present\n", __func__);
 					memcpy(msm_waipio_dai_links + total_links,
 						msm_wsa_cdc_dma_be_dai_links,
 						sizeof(msm_wsa_cdc_dma_be_dai_links));

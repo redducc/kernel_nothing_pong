@@ -1703,7 +1703,7 @@ static int tfa98xx_get_stereo_ctl(struct snd_kcontrol *kcontrol,
 }
 #endif
 
-static tfa98xx_miid;
+static int tfa98xx_miid;
 static int tfa98xx_info_miid(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_info *uinfo)
 {
@@ -1741,7 +1741,7 @@ static int tfa98xx_set_miid(struct snd_kcontrol *kcontrol,
 	return 1;
 }
 
-static tfa98xx_pcm_id;
+static int tfa98xx_pcm_id;
 static int tfa98xx_info_pcm_id(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_info *uinfo)
 {
@@ -2608,7 +2608,7 @@ static int tfa98xx_load_container(struct tfa98xx *tfa98xx)
 {
 	tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_PENDING;
 
-	return request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+	return request_firmware_nowait(THIS_MODULE, FW_ACTION_UEVENT,
 		fw_name, tfa98xx->dev, GFP_KERNEL,
 		tfa98xx, tfa98xx_container_loaded);
 }
@@ -5479,8 +5479,7 @@ void tfa98xx_set_vendor_info(int id, char *chip){
 
 #endif /*ENABLE_IOCTRL_INTERFACE*/
 
-static int tfa98xx_i2c_probe(struct i2c_client *i2c,
-	const struct i2c_device_id *id)
+static int tfa98xx_i2c_probe(struct i2c_client *i2c)
 {
 	struct snd_soc_dai_driver *dai	= NULL;
 	struct tfa98xx *tfa98xx 		= NULL;
@@ -5632,10 +5631,6 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 			break;
 		default:
 			pr_info("Unsupported device revision (0x%x)\n", reg & 0xff);
-			if (gpio_is_valid(tfa98xx->irq_gpio))
-				devm_gpio_free(&i2c->dev, tfa98xx->irq_gpio);
-			if (gpio_is_valid(tfa98xx->reset_gpio))
-				devm_gpio_free(&i2c->dev, tfa98xx->reset_gpio); 		   
 			return -EINVAL;
 		}
 	}
@@ -5764,7 +5759,7 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 	return 0;
 }
 
-static int tfa98xx_i2c_remove(struct i2c_client *i2c)
+static void tfa98xx_i2c_remove(struct i2c_client *i2c)
 {
 	struct tfa98xx *tfa98xx = i2c_get_clientdata(i2c);
 
@@ -5804,10 +5799,6 @@ static int tfa98xx_i2c_remove(struct i2c_client *i2c)
 #endif
 
 #endif
-	if (gpio_is_valid(tfa98xx->irq_gpio))
-		devm_gpio_free(&i2c->dev, tfa98xx->irq_gpio);
-	if (gpio_is_valid(tfa98xx->reset_gpio))
-		devm_gpio_free(&i2c->dev, tfa98xx->reset_gpio);
 
 	mutex_lock(&tfa98xx_mutex);
 	list_del(&tfa98xx->list);
@@ -5818,7 +5809,6 @@ static int tfa98xx_i2c_remove(struct i2c_client *i2c)
 	}
 	mutex_unlock(&tfa98xx_mutex);
 
-	return 0;
 }
 
 static const struct i2c_device_id tfa98xx_i2c_id[] = {
