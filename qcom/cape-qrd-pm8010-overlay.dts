@@ -1,14 +1,19 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/arm/qcom,ids.h>
+
 #include "cape-qrd.dtsi"
 #include "waipio-pm8010-spmi.dtsi"
 #include "cape-alk-common-overlay.dtsi"
 
+#include "audio/cape-audio-qrd.dtsi"
+#include "camera/agenda-camera-sensor.dtsi"
+#include "display/display/cape-sde-display-qrd.dtsi"
+
 / {
-	model = "Qualcomm Technologies, Inc. Cape QRD with PM8010";
-	compatible = "qcom,cape-qrd", "qcom,cape", "qcom,qrd";
-	qcom,msm-id = <530 0x10000>, <531 0x10000>, <540 0x10000>;
+	model = "Nothing Phone (2)";
+	compatible = "nothing,phone2", "qcom,cape-qrd", "qcom,cape", "qcom,qrd";
+	qcom,msm-id = <QCOM_ID_SM8475 0x10000>, <531 0x10000>, <540 0x10000>;
 	qcom,board-id = <0x1000B 0>;
 };
-

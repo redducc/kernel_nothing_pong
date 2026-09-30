@@ -440,77 +440,83 @@
 	};
 };
 
-&spmi_bus {
-	qcom,pm8350@1{
-		pmk8350_adc_tm_iio: adc_tm@3400 {
-			compatible = "qcom,spmi-adc-tm5-iio";
-			reg = <0x3400>;
-			#thermal-sensor-cells = <1>;
-			#address-cells = <1>;
-			#size-cells = <0>;
-			io-channels = <&pmk8350_vadc PM8350_ADC7_GPIO1_100K_PU(1)>,
-					<&pmk8350_vadc PM8350_ADC7_GPIO2_100K_PU(1)>,
-					<&pmk8350_vadc PM8350_ADC7_GPIO4_100K_PU(1)>,
-					<&pmk8350_vadc PM8350B_ADC7_AMUX_THM1_100K_PU>,
-					<&pmk8350_vadc PM8350B_ADC7_GPIO3_100K_PU>,
-					<&pmk8350_vadc PM8350B_ADC7_GPIO4_100K_PU>,
-					<&pmk8350_vadc PMR735A_ADC7_GPIO1_100K_PU>,
-					<&pmk8350_vadc PMR735A_ADC7_GPIO2_100K_PU>,
-					<&pmk8350_vadc PMR735A_ADC7_GPIO3_100K_PU>;
+&pmk8350 {
+	pmk8350_adc_tm_iio0: adc_tm_iio0@3400 {
+		compatible = "qcom,spmi-adc-tm5-iio";
+		reg = <0x3400>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#thermal-sensor-cells = <1>;
 
-			pm8350_cp_therm {
-				reg = <PM8350_ADC7_GPIO1_100K_PU(1)>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350_cp_therm@0 {
+			reg = <0>;
+			io-channels = <&pmk8350_vadc PM8350_ADC7_GPIO1_100K_PU(1)>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pm8350_wcn_therm {
-				reg = <PM8350_ADC7_GPIO2_100K_PU(1)>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350_wcn_therm@1 {
+			reg = <1>;
+			io-channels = <&pmk8350_vadc PM8350_ADC7_GPIO2_100K_PU(1)>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pm8350_pa4_therm {
-				reg = <PM8350_ADC7_GPIO4_100K_PU(1)>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350_pa4_therm@2 {
+			reg = <2>;
+			io-channels = <&pmk8350_vadc PM8350_ADC7_GPIO4_100K_PU(1)>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pm8350b_batt_therm {
-				reg = <PM8350B_ADC7_AMUX_THM1_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350b_batt_therm@3 {
+			reg = <3>;
+			io-channels = <&pmk8350_vadc PM8350B_ADC7_AMUX_THM1_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pm8350b_pmr735a_therm {
-				reg = <PM8350B_ADC7_GPIO3_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350b_pmr735a_therm@4 {
+			reg = <4>;
+			io-channels = <&pmk8350_vadc PM8350B_ADC7_GPIO3_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
+	};
 
-			pm8350b_rf_therm {
-				reg = <PM8350B_ADC7_GPIO4_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+	pmk8350_adc_tm_iio1: adc_tm_iio1@3400 {
+		compatible = "qcom,spmi-adc-tm5-iio";
+		reg = <0x3400>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#thermal-sensor-cells = <1>;
 
-			pmr735a_pa1_therm {
-				reg = <PMR735A_ADC7_GPIO1_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pm8350b_rf_therm@0 {
+			reg = <0>;
+			io-channels = <&pmk8350_vadc PM8350B_ADC7_GPIO4_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pmr735a_pa2_therm {
-				reg = <PMR735A_ADC7_GPIO2_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pmr735a_pa1_therm@1 {
+			reg = <1>;
+			io-channels = <&pmk8350_vadc PMR735A_ADC7_GPIO1_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
 
-			pmr735a_pa3_therm {
-				reg = <PMR735A_ADC7_GPIO3_100K_PU>;
-				qcom,ratiometric;
-				qcom,hw-settle-time = <200>;
-			};
+		pmr735a_pa2_therm@2 {
+			reg = <2>;
+			io-channels = <&pmk8350_vadc PMR735A_ADC7_GPIO2_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
+		};
+
+		pmr735a_pa3_therm@3 {
+			reg = <3>;
+			io-channels = <&pmk8350_vadc PMR735A_ADC7_GPIO3_100K_PU>;
+			qcom,ratiometric;
+			qcom,hw-settle-time-us = <200>;
 		};
 	};
 };
@@ -614,37 +620,37 @@
 	cp-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350_ADC7_GPIO1_100K_PU(1)>;
+		thermal-sensors = <&pmk8350_adc_tm_iio0 0>;
 	};
 
 	wcn-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350_ADC7_GPIO2_100K_PU(1)>;
+		thermal-sensors = <&pmk8350_adc_tm_iio0 1>;
 	};
 
 	pa4-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350_ADC7_GPIO4_100K_PU(1)>;
+		thermal-sensors = <&pmk8350_adc_tm_iio0 2>;
 	};
 
 	batt-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350B_ADC7_AMUX_THM1_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio0 3>;
 	};
 
 	pmr735a-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350B_ADC7_GPIO3_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio0 4>;
 	};
 
 	rf-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PM8350B_ADC7_GPIO4_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio1 0>;
 	};
 
 	conn-therm {
@@ -730,18 +736,18 @@
 	pa1-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PMR735A_ADC7_GPIO1_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio1 1>;
 	};
 
 	pa2-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PMR735A_ADC7_GPIO2_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio1 2>;
 	};
 
 	pa3-therm {
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
-		thermal-sensors = <&pmk8350_adc_tm_iio PMR735A_ADC7_GPIO3_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm_iio1 3>;
 	};
 };
