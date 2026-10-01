@@ -1,13 +1,13 @@
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
-load("//vendor/qcom/kernel:target_variants.bzl", "get_all_la_variants")
+load("//vendor/nothing/pong-kernel:target_variants.bzl", "get_all_la_variants")
 load(":project_defconfig.bzl", "get_project_defconfig")
 
 def _define_module(target, variant):
     tv = "{}_{}".format(target, variant)
     deps = [
         ":camera_headers",
-        "//vendor/qcom/kernel:all_headers",
+        "//vendor/nothing/pong-kernel:all_headers",
     ]
 
     # Generate the defconfig file dynamically
@@ -22,9 +22,9 @@ def _define_module(target, variant):
 
     if target == "waipio":
         deps.extend([
-            "//vendor/qcom/sm8450-modules/qcom/opensource/mmrm-driver:{}_mmrm_driver".format(tv),
-            "//vendor/qcom/sm8450-modules/qcom/opensource/synx-kernel:synx_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/synx-kernel:{}_modules".format(tv),
+            "//vendor/nothing/pong-modules/qcom/opensource/mmrm-driver:{}_mmrm_driver".format(tv),
+            "//vendor/nothing/pong-modules/qcom/opensource/synx-kernel:synx_headers",
+            "//vendor/nothing/pong-modules/qcom/opensource/synx-kernel:{}_modules".format(tv),
         ])
 
     ddk_module(
@@ -273,7 +273,7 @@ def _define_module(target, variant):
         deps = deps,
         kconfig = "Kconfig",
         defconfig = "{}_defconfig_generated".format(tv),
-        kernel_build = "//vendor/qcom/kernel:{}".format(tv),
+        kernel_build = "//vendor/nothing/pong-kernel:{}".format(tv),
     )
 
     copy_to_dist_dir(
