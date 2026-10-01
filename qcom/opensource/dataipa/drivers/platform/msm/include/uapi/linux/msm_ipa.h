@@ -150,8 +150,7 @@
 /**
  * max size of the header to be inserted
  */
-/* 64 as on 5.10: phone2's ipacm is built against the 5.10 header and the size is in ioctl strides */
-#define IPA_HDR_MAX_SIZE 64
+#define IPA_HDR_MAX_SIZE 255
 
 /**
  * max size of the name of the resource (routing table, header)
