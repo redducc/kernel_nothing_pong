@@ -59,3 +59,10 @@ cc_library_headers {
     vendor: true,
     recovery_available: true
 }
+
+cc_library_headers {
+    name: "audio_kernel_headers",
+    header_libs: ["qti_audio_kernel_uapi"],
+    export_header_lib_headers: ["qti_audio_kernel_uapi"],
+    vendor: true,
+}
