@@ -5253,6 +5253,7 @@ int dsi_panel_enable(struct dsi_panel *panel)
 		}
 	}
 	panel->panel_initialized = true;
+	panel->power_mode = SDE_MODE_DPMS_ON;
 
 error:
 	mutex_unlock(&panel->panel_lock);
