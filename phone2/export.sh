@@ -5,7 +5,7 @@ set -e
 HERE=$(dirname "$(readlink -f "$0")")
 W=${PHONE2_WORK:-$HERE/work}; D=${K66_DIST:-~/k66/out/nothing_pong/dist}
 O=${OUT:?set OUT to the prebuilt dir, e.g. ~/pengi/device/nothing/phone2-kernel}
-HEADERS=${KERNEL_HEADERS:?set KERNEL_HEADERS to the 5.10 kernel-headers the ROM userspace builds against}
+BIONIC_UAPI=${BIONIC_UAPI:-~/pengi/bionic/libc/kernel/uapi}
 
 rm -rf $O/Image $O/System.map $O/Module.symvers $O/dtbs $O/vendor_ramdisk $O/vendor_dlkm $O/kernel-headers
 mkdir -p $O/dtbs $O/vendor_ramdisk $O/vendor_dlkm
@@ -17,8 +17,15 @@ python3 ${LIBUFDT:-~/pengi/system/libufdt}/utils/src/mkdtboimg.py create $O/dtbs
 cp $W/vr/lib/modules/*.ko $W/vr/lib/modules/modules.load $W/vr/lib/modules/modules.load.recovery $O/vendor_ramdisk/
 cp $W/vdlkm/lib/modules/*.ko $W/vdlkm/lib/modules/modules.load $W/vdlkm/lib/modules/modules.blocklist $O/vendor_dlkm/
 
-# phone2 keeps its 5.10 userspace, and the 6.6 techpacks were made ABI compatible with it
-cp -r $HEADERS $O/kernel-headers
+# Board UAPI headers, processed the way kernel_platform's prepare_vendor.sh does
+T=$(mktemp -d); tar xf $D/kernel-uapi-headers.tar.gz -C $T
+python3 $HERE/export_headers.py $T/usr/include $BIONIC_UAPI $O/kernel-headers arm64
+rm -rf $T
+# Header tools the techpack UAPI header modules use, normally from the kernel source tree
+K=${K66_KERNEL:-~/k66/vendor/nothing/pong-kernel}
+mkdir -p $O/scripts
+cp $K/Android.bp $O/Android.bp
+cp $K/scripts/unifdef.c $K/scripts/headers_install.sh $O/scripts/
 # Tells Build_external_kernelmodule.mk to copy these KOs instead of building techpacks
 touch $O/techpack.built
 
