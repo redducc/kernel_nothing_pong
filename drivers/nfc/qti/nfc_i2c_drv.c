@@ -149,6 +149,11 @@ int i2c_read(struct nfc_dev *nfc_dev, char *buf, size_t count, int timeout)
 				ret = -EIO;
 				goto err;
 			}
+			/* NFC service wants to close the node, release the reader */
+			if (nfc_dev->release_read) {
+				pr_debug("%s: releasing read\n", __func__);
+				return 0;
+			}
 			pr_warn("%s: spurious interrupt detected\n", __func__);
 		}
 	}
@@ -277,6 +282,7 @@ static const struct file_operations nfc_i2c_dev_fops = {
 	.write = nfc_i2c_dev_write,
 	.open = nfc_dev_open,
 	.release = nfc_dev_close,
+	.flush = nfc_dev_flush,
 	.unlocked_ioctl = nfc_dev_ioctl,
 };
 

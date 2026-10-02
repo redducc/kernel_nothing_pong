@@ -284,6 +284,7 @@ enum chip_types {
 struct nfc_dev {
 	wait_queue_head_t read_wq;
 	struct mutex read_mutex;
+	bool release_read;
 	struct mutex write_mutex;
 	uint8_t *read_kbuf;
 	uint8_t *write_kbuf;
@@ -324,6 +325,7 @@ struct nfc_dev {
 };
 
 int nfc_dev_open(struct inode *inode, struct file *filp);
+int nfc_dev_flush(struct file *pfile, fl_owner_t id);
 int nfc_dev_close(struct inode *inode, struct file *filp);
 long nfc_dev_ioctl(struct file *pfile, unsigned int cmd, unsigned long arg);
 int nfc_parse_dt(struct device *dev, struct platform_configs *nfc_configs,
