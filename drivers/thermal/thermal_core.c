@@ -1394,7 +1394,11 @@ thermal_zone_device_register_with_trips(const char *type, struct thermal_trip *t
 unregister:
 	device_del(&tz->device);
 release_device:
+	ida_free(&thermal_tz_ida, id);
+	kfree(tz->tzp);
+	/* thermal_release() frees tz */
 	put_device(&tz->device);
+	return ERR_PTR(result);
 remove_id:
 	ida_free(&thermal_tz_ida, id);
 free_tzp:
@@ -1481,10 +1485,11 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
 	thermal_set_governor(tz, NULL);
 
 	thermal_remove_hwmon_sysfs(tz);
-	ida_free(&thermal_tz_ida, tz->id);
 	ida_destroy(&tz->ida);
 
 	device_del(&tz->device);
+	/* Free the id only once its sysfs name is gone */
+	ida_free(&thermal_tz_ida, tz->id);
 
 	kfree(tz->tzp);
 
