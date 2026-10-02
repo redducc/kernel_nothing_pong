@@ -482,6 +482,7 @@ void nfc_i2c_dev_remove(struct i2c_client *client)
 
 	device_init_wakeup(&client->dev, false);
 	free_irq(client->irq, nfc_dev);
+	sysfs_remove_group(&client->dev.kobj, &nfc_i2c_attr_grp);
 	nfc_misc_unregister(nfc_dev, DEV_COUNT);
 	mutex_destroy(&nfc_dev->dev_ref_mutex);
 	mutex_destroy(&nfc_dev->read_mutex);
