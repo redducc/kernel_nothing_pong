@@ -1051,6 +1051,92 @@ static void qcom_create_subsystem_stat_files(struct dentry *root,
 	}
 }
 
+/*
+ * Nothing's stock PowerStats HAL reads RPMh sleep and master stats from these
+ * module sysfs nodes and fails getStateResidency without them.
+ */
+static struct kobject *nt_soc_sleep_kobj, *nt_rpmh_stats_kobj;
+static struct device_node *nt_stats_node;
+
+static u64 nt_ticks_to_ms(u64 ticks)
+{
+	do_div(ticks, 19200000 / MSEC_PER_SEC);
+	return ticks;
+}
+
+static ssize_t nt_rpmh_stats_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	static const char * const fmt[] = { "vlow:%x:%llx\n", "vmin:%x:%llx\r\n" };
+	ssize_t len = 0;
+	int i;
+
+	for (i = 0; i < drv->config->num_records && i < ARRAY_SIZE(fmt); i++) {
+		void __iomem *base = drv->d[i].base;
+		u32 count = readl(base + COUNT_OFFSET);
+		u64 accumulated = readq(base + ACCUMULATED_OFFSET);
+
+		len += sysfs_emit_at(buf, len, fmt[i], count, nt_ticks_to_ms(accumulated));
+	}
+
+	return len;
+}
+
+static ssize_t nt_master_stats_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	ssize_t len = 0;
+	const char *name;
+	int i, j, n;
+
+	n = of_property_count_strings(nt_stats_node, "ss-name");
+	for (i = 0; i < n; i++) {
+		of_property_read_string_index(nt_stats_node, "ss-name", i, &name);
+		for (j = 0; j < ARRAY_SIZE(subsystems); j++) {
+			struct sleep_stats *stat;
+			u64 accumulated;
+
+			if (strcmp(subsystems[j].name, name))
+				continue;
+			stat = qcom_smem_get(subsystems[j].pid, subsystems[j].smem_item, NULL);
+			if (IS_ERR(stat))
+				break;
+			accumulated = stat->accumulated;
+			if (stat->last_entered_at > stat->last_exited_at)
+				accumulated += __arch_counter_get_cntvct() - stat->last_entered_at;
+			len += sysfs_emit_at(buf, len, "%s:%x:%llx\n", name, stat->count,
+					     nt_ticks_to_ms(accumulated));
+			break;
+		}
+	}
+
+	return len;
+}
+
+static struct kobj_attribute nt_rpmh_stats_attr = __ATTR_RO(nt_rpmh_stats);
+static struct kobj_attribute nt_master_stats_attr = __ATTR_RO(nt_master_stats);
+
+static void nt_create_stats_sysfs(struct platform_device *pdev)
+{
+	struct kobject *mod_kobj = &THIS_MODULE->mkobj.kobj;
+
+	if (nt_soc_sleep_kobj || !drv->config->num_records)
+		return;
+
+	nt_stats_node = pdev->dev.of_node;
+	nt_soc_sleep_kobj = kobject_create_and_add("soc_sleep", mod_kobj);
+	if (nt_soc_sleep_kobj && sysfs_create_file(nt_soc_sleep_kobj, &nt_rpmh_stats_attr.attr))
+		dev_warn(&pdev->dev, "failed to create nt_rpmh_stats\n");
+	nt_rpmh_stats_kobj = kobject_create_and_add("rpmh_stats", mod_kobj);
+	if (nt_rpmh_stats_kobj && sysfs_create_file(nt_rpmh_stats_kobj, &nt_master_stats_attr.attr))
+		dev_warn(&pdev->dev, "failed to create nt_master_stats\n");
+}
+
+static void nt_remove_stats_sysfs(void)
+{
+	kobject_put(nt_rpmh_stats_kobj);
+	kobject_put(nt_soc_sleep_kobj);
+	nt_rpmh_stats_kobj = nt_soc_sleep_kobj = NULL;
+}
+
 static int qcom_stats_probe(struct platform_device *pdev)
 {
 	void __iomem *reg;
@@ -1136,6 +1222,7 @@ static int qcom_stats_probe(struct platform_device *pdev)
 	}
 
 	platform_set_drvdata(pdev, drv);
+	nt_create_stats_sysfs(pdev);
 
 	return 0;
 
@@ -1153,6 +1240,7 @@ static int qcom_stats_remove(struct platform_device *pdev)
 {
 	struct stats_drvdata *drv = platform_get_drvdata(pdev);
 
+	nt_remove_stats_sysfs();
 	device_destroy(drv->stats_class, drv->dev_no);
 	class_destroy(drv->stats_class);
 	cdev_del(&drv->stats_cdev);
